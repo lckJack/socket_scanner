@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import sys
 import subprocess
 import socket
@@ -13,10 +12,18 @@ def main (argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('-p','--port', help="just one port or a full range. Default: 1-1000" ,required=False)
     parser.add_argument('-s','--show', help="won't show closed if not specified.", required=False, action="store_true")
+    parser.add_argument('-t','--timeout', help="connection timeout. Default: 5", required=False)
     parser.add_argument('-i','--ip', help="target IP.", required=True)
     args = parser.parse_args()
     target = args.ip
     ip_range= args.port
+    timeout= args.timeout
+
+    if( args.timeout ):
+        timeout = int(args.timeout)
+    else:
+        timeout = 5
+
 
     if( args.show ):
         show = 1
@@ -41,23 +48,27 @@ def main (argv):
             s_port = 1
             f_port = 1001
 
-    code(target, s_port,f_port,show)
+
+    code(target, s_port,f_port,show,timeout)
 
 
-def code(target, s_port,f_port, show):
+def code(target, s_port,f_port, show,timeout):
     print("")
     target = target
     s_port = s_port
     f_port = f_port
     targetIP = socket.gethostbyname(target)
-    color_reset = attr('reset')
-    start = time.time()
 
-    print("Scanning remote host: ", targetIP, "\n")    
+    color_reset = attr('reset')
+
+    print("Scanning remote host: ", targetIP, "\n")
+
+    start = time.time()
 
     try:
         for port in range(s_port,f_port):  
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
             result = sock.connect_ex((targetIP, port))
             if result == 0:
                 print("    Port["+str(port)+"]:  "+fg(82)+"Open"+color_reset)
@@ -75,6 +86,7 @@ def code(target, s_port,f_port, show):
     finish = time.time()
 
     elapsed_time = time.strftime("%H:%M:%S", time.gmtime(finish - start))
+
 
     print('\nElapsed Time: ', elapsed_time)
     print("")
