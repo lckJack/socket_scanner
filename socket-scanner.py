@@ -6,9 +6,27 @@ import argparse
 
 import time
 from colored import fg, bg, attr
+from pynput import keyboard
+   
+    
 
+def on_press(key):
+    try: k = key.char
+    except: k = key.name
+    if key == keyboard.Key.esc: return False
+    if k in ['space']:
+        current = time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time))
+        percentage = (100*c_port) / (int(f_port)-int(s_port))
+        print(fg(156)+" Stats: "+current+" time elapsed. About",percentage,"% done. " +attr('reset'))
+        return False
 
 def main (argv):
+
+    global start_time
+    global s_port
+    global f_port
+    global target
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-p','--port', help="just one port or a full range. Default: 1-1000" ,required=False)
     parser.add_argument('-s','--show', help="won't show closed if not specified.", required=False, action="store_true")
@@ -48,25 +66,38 @@ def main (argv):
             s_port = 1
             f_port = 1001
 
-
-    code(target, s_port,f_port,show,timeout)
-
-
-def code(target, s_port,f_port, show,timeout):
-    print("")
+    start_time = time.time()
     target = target
-    s_port = s_port
-    f_port = f_port
+
+    code(show,timeout)
+
+
+def code(show,timeout):
+
+    global c_port #current
+
+    lis = keyboard.Listener(on_press=on_press)    
+
+    print("")
     targetIP = socket.gethostbyname(target)
 
     color_reset = attr('reset')
 
     print("Scanning remote host: ", targetIP, "\n")
 
-    start = time.time()
-
+    
     try:
+
         for port in range(s_port,f_port):  
+
+            c_port = port
+            
+            if not lis.is_alive():
+                del lis
+                lis = keyboard.Listener(on_press=on_press)
+                lis.start()
+            
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
             result = sock.connect_ex((targetIP, port))
@@ -81,11 +112,11 @@ def code(target, s_port,f_port, show,timeout):
     except socket.error:
         print("Error. Check that IP...")
         sys.exit()
-
+   
 
     finish = time.time()
 
-    elapsed_time = time.strftime("%H:%M:%S", time.gmtime(finish - start))
+    elapsed_time = time.strftime("%H:%M:%S", time.gmtime(finish - start_time))
 
 
     print('\nElapsed Time: ', elapsed_time)
@@ -94,3 +125,4 @@ def code(target, s_port,f_port, show,timeout):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
