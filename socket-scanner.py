@@ -17,7 +17,7 @@ def on_press(key):
     if k in ['space']:
         current = time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time))
         percentage = round((100*c_port) / (int(f_port)-int(s_port)), 2)
-        remaining = time.strftime("%H:%M:%S", time.gmtime(timeout*(f_port-1)))
+        remaining = time.strftime("%H:%M:%S", time.gmtime(timeout*(f_port-1) - (time.time() - start_time)))
 
         print(fg(108)+" Stats: "+current+" time elapsed. Remaining time: "+remaining+". Current port:",c_port,"About",percentage,"% done. "+attr('reset'))
         return False
