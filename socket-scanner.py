@@ -16,8 +16,10 @@ def on_press(key):
     if key == keyboard.Key.esc: return False
     if k in ['space']:
         current = time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time))
-        percentage = (100*c_port) / (int(f_port)-int(s_port))
-        print(fg(156)+" Stats: "+current+" time elapsed. About",percentage,"% done. " +attr('reset'))
+        percentage = round((100*c_port) / (int(f_port)-int(s_port)), 2)
+        remaining = time.strftime("%H:%M:%S", time.gmtime(timeout*(f_port-1)))
+
+        print(fg(108)+" Stats: "+current+" time elapsed. Remaining time: "+remaining+". Current port:",c_port,"About",percentage,"% done. "+attr('reset'))
         return False
 
 def main (argv):
@@ -25,7 +27,9 @@ def main (argv):
     global start_time
     global s_port
     global f_port
+    global timeout
     global target
+    global show
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-p','--port', help="just one port or a full range. Default: 1-1000" ,required=False)
@@ -69,10 +73,10 @@ def main (argv):
     start_time = time.time()
     target = target
 
-    code(show,timeout)
+    code()
 
 
-def code(show,timeout):
+def code():
 
     global c_port #current
 
